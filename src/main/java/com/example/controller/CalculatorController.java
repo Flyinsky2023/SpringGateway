@@ -16,20 +16,6 @@ import java.util.Map;
 public class CalculatorController {
     
     /**
-     * 加法运算
-     * @param a 第一个数字
-     * @param b 第二个数字
-     * @return 运算结果
-     */
-    @GetMapping("/add")
-    public ResponseEntity<Map<String, Object>> add(
-            @RequestParam double a,
-            @RequestParam double b) {
-        double result = a + b;
-        return createSuccessResponse("加法运算", a, b, result, "+");
-    }
-    
-    /**
      * 减法运算
      * @param a 被减数
      * @param b 减数

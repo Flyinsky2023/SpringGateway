@@ -1,11 +1,14 @@
 package com.example.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,127 +17,143 @@ import java.util.Map;
  * 提供获取当前系统信息的接口
  */
 @RestController
+@RequestMapping("/api/system")
 public class SystemInfoController {
-    
+
     /**
-     * 获取当前系统信息
-     * @return 包含系统信息的JSON对象
+     * 获取系统基本信息
+     * @return 系统信息
      */
-    @GetMapping("/system/info")
+    @GetMapping("/info")
     public Map<String, Object> getSystemInfo() {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> systemInfo = new HashMap<>();
         
-        // 操作系统信息
+        // 获取操作系统信息
         OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-        result.put("osName", osBean.getName());
-        result.put("osVersion", osBean.getVersion());
-        result.put("osArch", osBean.getArch());
-        result.put("availableProcessors", osBean.getAvailableProcessors());
-        result.put("systemLoadAverage", osBean.getSystemLoadAverage());
+        RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+        
+        // 系统基本信息
+        systemInfo.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        systemInfo.put("systemName", osBean.getName());
+        systemInfo.put("systemVersion", osBean.getVersion());
+        systemInfo.put("systemArch", osBean.getArch());
+        systemInfo.put("availableProcessors", osBean.getAvailableProcessors());
+        systemInfo.put("systemLoadAverage", osBean.getSystemLoadAverage());
         
         // JVM信息
-        RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
-        result.put("jvmName", runtimeBean.getVmName());
-        result.put("jvmVendor", runtimeBean.getVmVendor());
-        result.put("jvmVersion", runtimeBean.getVmVersion());
-        result.put("jvmUptime", runtimeBean.getUptime());
-        result.put("jvmStartTime", runtimeBean.getStartTime());
+        systemInfo.put("jvmName", runtimeBean.getVmName());
+        systemInfo.put("jvmVendor", runtimeBean.getVmVendor());
+        systemInfo.put("jvmVersion", runtimeBean.getVmVersion());
+        systemInfo.put("jvmUptime", runtimeBean.getUptime());
+        systemInfo.put("jvmStartTime", runtimeBean.getStartTime());
         
         // 内存信息
         Runtime runtime = Runtime.getRuntime();
-        result.put("totalMemory", runtime.totalMemory());
-        result.put("freeMemory", runtime.freeMemory());
-        result.put("maxMemory", runtime.maxMemory());
-        result.put("usedMemory", runtime.totalMemory() - runtime.freeMemory());
+        systemInfo.put("totalMemory", runtime.totalMemory());
+        systemInfo.put("freeMemory", runtime.freeMemory());
+        systemInfo.put("maxMemory", runtime.maxMemory());
+        systemInfo.put("usedMemory", runtime.totalMemory() - runtime.freeMemory());
         
         // 计算内存使用率
-        double memoryUsage = (double) (runtime.totalMemory() - runtime.freeMemory()) / runtime.totalMemory() * 100;
-        result.put("memoryUsagePercentage", String.format("%.2f%%", memoryUsage));
+        double memoryUsage = ((double) (runtime.totalMemory() - runtime.freeMemory()) / runtime.totalMemory()) * 100;
+        systemInfo.put("memoryUsagePercentage", String.format("%.2f%%", memoryUsage));
         
-        // 系统时间
-        result.put("currentTimeMillis", System.currentTimeMillis());
-        result.put("timestamp", System.currentTimeMillis());
+        // 用户信息
+        systemInfo.put("userName", System.getProperty("user.name"));
+        systemInfo.put("userHome", System.getProperty("user.home"));
+        systemInfo.put("userDir", System.getProperty("user.dir"));
+        
+        // Java环境信息
+        systemInfo.put("javaVersion", System.getProperty("java.version"));
+        systemInfo.put("javaHome", System.getProperty("java.home"));
+        systemInfo.put("javaVendor", System.getProperty("java.vendor"));
+        
+        // 系统属性
+        systemInfo.put("osName", System.getProperty("os.name"));
+        systemInfo.put("osVersion", System.getProperty("os.version"));
+        systemInfo.put("osArch", System.getProperty("os.arch"));
         
         // 响应状态
-        result.put("code", 200);
-        result.put("message", "System information retrieved successfully");
+        systemInfo.put("code", 200);
+        systemInfo.put("message", "System information retrieved successfully");
         
-        return result;
+        return systemInfo;
     }
-    
+
     /**
      * 获取系统健康状态
-     * @return 系统健康状态信息
+     * @return 健康状态信息
      */
-    @GetMapping("/system/health")
-    public Map<String, Object> getSystemHealth() {
-        Map<String, Object> result = new HashMap<>();
+    @GetMapping("/health")
+    public Map<String, Object> getHealthStatus() {
+        Map<String, Object> healthInfo = new HashMap<>();
         
-        try {
-            Runtime runtime = Runtime.getRuntime();
-            OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-            
-            // 检查内存使用率
-            long totalMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-            long usedMemory = totalMemory - freeMemory;
-            double memoryUsage = (double) usedMemory / totalMemory * 100;
-            
-            // 检查系统负载
-            double systemLoad = osBean.getSystemLoadAverage();
-            
-            result.put("status", "UP");
-            result.put("memoryUsage", String.format("%.2f%%", memoryUsage));
-            result.put("systemLoad", systemLoad);
-            result.put("availableProcessors", osBean.getAvailableProcessors());
-            result.put("timestamp", System.currentTimeMillis());
-            result.put("code", 200);
-            result.put("message", "System is healthy");
-            
-            // 添加警告信息（如果内存使用率过高）
-            if (memoryUsage > 80) {
-                result.put("warning", "High memory usage detected");
-            }
-            if (systemLoad > osBean.getAvailableProcessors() * 0.8) {
-                result.put("warning", "High system load detected");
-            }
-            
-        } catch (Exception e) {
-            result.put("status", "DOWN");
-            result.put("error", e.getMessage());
-            result.put("code", 500);
-            result.put("message", "Failed to get system health");
-            result.put("timestamp", System.currentTimeMillis());
+        Runtime runtime = Runtime.getRuntime();
+        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        
+        healthInfo.put("status", "UP");
+        healthInfo.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        
+        // 内存健康检查
+        long maxMemory = runtime.maxMemory();
+        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
+        double memoryUsage = ((double) usedMemory / maxMemory) * 100;
+        
+        Map<String, Object> memoryStatus = new HashMap<>();
+        memoryStatus.put("usage", String.format("%.2f%%", memoryUsage));
+        memoryStatus.put("status", memoryUsage > 90 ? "WARNING" : "HEALTHY");
+        memoryStatus.put("maxMemory", maxMemory);
+        memoryStatus.put("usedMemory", usedMemory);
+        
+        healthInfo.put("memory", memoryStatus);
+        
+        // CPU负载
+        double systemLoad = osBean.getSystemLoadAverage();
+        Map<String, Object> cpuStatus = new HashMap<>();
+        cpuStatus.put("systemLoad", systemLoad >= 0 ? String.format("%.2f", systemLoad) : "N/A");
+        cpuStatus.put("availableProcessors", osBean.getAvailableProcessors());
+        cpuStatus.put("status", systemLoad > osBean.getAvailableProcessors() * 0.8 ? "WARNING" : "HEALTHY");
+        
+        healthInfo.put("cpu", cpuStatus);
+        
+        // 线程信息
+        ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
+        while (rootGroup.getParent() != null) {
+            rootGroup = rootGroup.getParent();
         }
+        int threadCount = rootGroup.activeCount();
         
-        return result;
+        Map<String, Object> threadStatus = new HashMap<>();
+        threadStatus.put("activeThreads", threadCount);
+        threadStatus.put("status", threadCount > 1000 ? "WARNING" : "HEALTHY");
+        
+        healthInfo.put("threads", threadStatus);
+        
+        // 响应状态
+        healthInfo.put("code", 200);
+        healthInfo.put("message", "System health check completed");
+        
+        return healthInfo;
     }
-    
+
     /**
-     * 获取系统环境信息
-     * @return 系统环境变量信息
+     * 获取系统环境变量
+     * @return 环境变量信息
      */
-    @GetMapping("/system/env")
-    public Map<String, Object> getSystemEnvironment() {
-        Map<String, Object> result = new HashMap<>();
-        
-        // 获取系统属性
-        Map<String, String> systemProperties = new HashMap<>();
-        systemProperties.put("java.version", System.getProperty("java.version"));
-        systemProperties.put("java.home", System.getProperty("java.home"));
-        systemProperties.put("java.vendor", System.getProperty("java.vendor"));
-        systemProperties.put("os.name", System.getProperty("os.name"));
-        systemProperties.put("os.arch", System.getProperty("os.arch"));
-        systemProperties.put("os.version", System.getProperty("os.version"));
-        systemProperties.put("user.name", System.getProperty("user.name"));
-        systemProperties.put("user.home", System.getProperty("user.home"));
-        systemProperties.put("user.dir", System.getProperty("user.dir"));
-        
-        result.put("systemProperties", systemProperties);
-        result.put("code", 200);
-        result.put("message", "System environment information retrieved successfully");
-        result.put("timestamp", System.currentTimeMillis());
-        
-        return result;
+    @GetMapping("/env")
+    public Map<String, String> getEnvironmentVariables() {
+        return System.getenv();
+    }
+
+    /**
+     * 获取系统属性
+     * @return 系统属性信息
+     */
+    @GetMapping("/properties")
+    public Map<String, String> getSystemProperties() {
+        Map<String, String> properties = new HashMap<>();
+        System.getProperties().forEach((key, value) -> 
+            properties.put(key.toString(), value.toString()));
+        return properties;
     }
 }

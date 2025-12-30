@@ -4,9 +4,34 @@ server:
 spring:
   application:
     name: spring-gateway
+  
+  # Redis 配置
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+      shutdown-timeout: 100ms
+
+# 缓存配置
+cache:
+  # 默认缓存过期时间（秒）
+  default-timeout: 300
+  # 热点数据刷新间隔（秒）
+  hot-refresh-interval: 1800
+  # 是否启用缓存预热
+  preheat-enabled: true
 
 # 日志配置
 logging:
   level:
     root: INFO
     com.example: DEBUG
+    org.springframework.data.redis: INFO
+    org.redisson: INFO

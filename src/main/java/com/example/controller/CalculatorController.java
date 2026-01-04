@@ -4,6 +4,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,8 +28,8 @@ public class CalculatorController {
      */
     @GetMapping("/subtract")
     public ResponseEntity<Map<String, Object>> subtract(
-            @RequestParam double a,
-            @RequestParam double b) {
+            @RequestParam @NotNull(message = "参数a不能为空") Double a,
+            @RequestParam @NotNull(message = "参数b不能为空") Double b) {
         double result = a - b;
         return createSuccessResponse("减法运算", a, b, result, "-");
     }
@@ -37,8 +42,8 @@ public class CalculatorController {
      */
     @GetMapping("/multiply")
     public ResponseEntity<Map<String, Object>> multiply(
-            @RequestParam double a,
-            @RequestParam double b) {
+            @RequestParam @NotNull(message = "参数a不能为空") Double a,
+            @RequestParam @NotNull(message = "参数b不能为空") Double b) {
         double result = a * b;
         return createSuccessResponse("乘法运算", a, b, result, "*");
     }
@@ -51,8 +56,8 @@ public class CalculatorController {
      */
     @GetMapping("/divide")
     public ResponseEntity<Map<String, Object>> divide(
-            @RequestParam double a,
-            @RequestParam double b) {
+            @RequestParam @NotNull(message = "参数a不能为空") Double a,
+            @RequestParam @NotNull(message = "参数b不能为空") Double b) {
         if (b == 0) {
             return createErrorResponse("除法运算错误", "除数不能为零");
         }
@@ -68,8 +73,13 @@ public class CalculatorController {
      */
     @GetMapping("/power")
     public ResponseEntity<Map<String, Object>> power(
-            @RequestParam double base,
-            @RequestParam double exponent) {
+            @RequestParam @NotNull(message = "底数不能为空") Double base,
+            @RequestParam @NotNull(message = "指数不能为空") Double exponent) {
+        // 限制指数大小，防止过大计算
+        if (Math.abs(exponent) > 1000) {
+            return createErrorResponse("幂运算错误", "指数绝对值不能超过1000");
+        }
+        
         double result = Math.pow(base, exponent);
         return createSuccessResponse("幂运算", base, exponent, result, "^");
     }
@@ -81,7 +91,7 @@ public class CalculatorController {
      */
     @GetMapping("/sqrt")
     public ResponseEntity<Map<String, Object>> sqrt(
-            @RequestParam double number) {
+            @RequestParam @NotNull(message = "参数不能为空") Double number) {
         if (number < 0) {
             return createErrorResponse("平方根运算错误", "负数不能开平方根");
         }
@@ -91,16 +101,16 @@ public class CalculatorController {
     
     /**
      * 批量运算接口
-     * @param operations 运算表达式数组
+     * @param request 运算请求
      * @return 批量运算结果
      */
     @PostMapping("/batch")
     public ResponseEntity<Map<String, Object>> batchOperations(
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody BatchOperationRequest request) {
         try {
-            String operation = (String) request.get("operation");
-            double a = Double.parseDouble(request.get("a").toString());
-            double b = Double.parseDouble(request.get("b").toString());
+            String operation = request.getOperation();
+            double a = request.getA();
+            double b = request.getB();
             
             Map<String, Object> result = new HashMap<>();
             result.put("operation", operation);
@@ -128,6 +138,9 @@ public class CalculatorController {
                     result.put("operator", "/");
                     break;
                 case "power":
+                    if (Math.abs(b) > 1000) {
+                        return createErrorResponse("幂运算错误", "指数绝对值不能超过1000");
+                    }
                     result.put("result", Math.pow(a, b));
                     result.put("operator", "^");
                     break;
@@ -201,5 +214,27 @@ public class CalculatorController {
         response.put("timestamp", System.currentTimeMillis());
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    
+    /**
+     * 批量运算请求对象
+     */
+    public static class BatchOperationRequest {
+        @NotNull(message = "运算类型不能为空")
+        private String operation;
+        
+        @NotNull(message = "参数a不能为空")
+        private Double a;
+        
+        @NotNull(message = "参数b不能为空")
+        private Double b;
+
+        // Getters and Setters
+        public String getOperation() { return operation; }
+        public void setOperation(String operation) { this.operation = operation; }
+        public Double getA() { return a; }
+        public void setA(Double a) { this.a = a; }
+        public Double getB() { return b; }
+        public void setB(Double b) { this.b = b; }
     }
 }

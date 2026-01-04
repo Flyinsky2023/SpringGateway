@@ -1,200 +1,218 @@
 # Spring Gateway
 
-一个基于 Spring Boot 的网关项目，集成了 Redis 缓存解决方案。
+一个基于 Spring Boot 的网关项目，提供计算器、系统信息查询等功能。
 
-## 项目特性
+## 项目功能
 
-- Spring Boot 3.2.0
-- Java 17
-- Redis 缓存支持
-- 分布式锁（Redisson）
-- 缓存雪崩和击穿解决方案
+### 1. 计算器功能
+- 基本运算：加、减、乘、除
+- 高级运算：幂运算、平方根
+- 批量运算接口
 
-## 新增的 Redis 缓存工具类
+### 2. 系统信息查询
+- 系统基本信息
+- JVM 信息
+- 内存使用情况
+- 健康检查
 
-项目新增了一套完整的 Redis 缓存工具类，用于解决缓存雪崩和缓存击穿问题。
+### 3. Neofetch 风格系统信息
+- 类似 Linux neofetch 的格式化输出
+- JSON 格式的系统信息
 
-### 主要功能
+## 安全特性
 
-#### 1. 缓存击穿解决方案
-- **互斥锁（Mutex Lock）**：使用 Redisson 分布式锁，防止大量请求同时访问数据库
-- **双重检查**：获取锁后再次检查缓存，避免重复更新
-- **锁超时控制**：防止死锁，自动释放
+### 1. 认证与授权
+- **JWT 认证**：基于 Token 的无状态认证
+- **Spring Security**：全面的安全框架
+- **角色控制**：基于角色的访问控制
+- **密码加密**：BCrypt 密码加密
 
-#### 2. 缓存雪崩解决方案
-- **随机过期时间**：在基础过期时间上增加随机偏移，分散缓存失效时间
-- **缓存预热**：在系统启动或低峰期预先加载热点数据
-- **多级缓存**：Redis + 本地缓存组合，提高访问速度
+### 2. API 安全
+- **参数验证**：使用 Jakarta Validation API
+- **输入过滤**：防止 SQL 注入和 XSS 攻击
+- **速率限制**：防止暴力破解和 DDoS 攻击
+- **CORS 配置**：跨域资源共享安全配置
 
-#### 3. 热点数据优化
-- **后台刷新**：热点数据永不过期，后台线程定期更新
-- **异步检查**：非阻塞式缓存刷新，不影响主流程
+### 3. 数据安全
+- **敏感数据保护**：密码等敏感信息加密存储
+- **请求日志**：完整的请求审计日志
+- **异常处理**：统一的异常处理机制
 
-### 工具类说明
+## 技术栈
 
-#### CacheUtils
-核心缓存工具类，提供以下方法：
+- **Spring Boot 3.2.0**
+- **Spring Security** - 安全框架
+- **JWT (JSON Web Token)** - 认证机制
+- **Redis** - 缓存和分布式锁
+- **Redisson** - Redis 客户端
+- **Jakarta Validation** - 参数验证
+- **Maven** - 项目管理
 
-1. **getWithMutex()** - 使用互斥锁解决缓存击穿
-2. **getWithRandomExpire()** - 使用随机过期时间解决缓存雪崩
-3. **getWithBackgroundRefresh()** - 热点数据后台刷新
-4. **getWithMultiLevel()** - 多级缓存方案
-5. **preheatCache()** - 缓存预热
-6. **deleteCache()** - 删除缓存
+## 快速开始
 
-#### RedisConfig
-Redis 配置类：
-- 配置 Redis 连接工厂
-- 配置 RedisTemplate（支持 JSON 序列化）
-- 配置 Redisson 客户端（分布式锁）
+### 1. 环境要求
+- Java 17+
+- Maven 3.6+
+- Redis 6.0+
 
-### 使用示例
+### 2. 安装依赖
+```bash
+mvn clean install
+```
 
-#### API 端点
-
-1. **互斥锁方案**
-   ```
-   GET /api/cache/mutex/{id}
-   ```
-
-2. **随机过期时间方案**
-   ```
-   GET /api/cache/random/{id}
-   ```
-
-3. **热点数据方案**
-   ```
-   GET /api/cache/hot/{id}
-   ```
-
-4. **多级缓存方案**
-   ```
-   GET /api/cache/multi-level/{id}
-   ```
-
-5. **缓存预热**
-   ```
-   POST /api/cache/preheat
-   ```
-
-6. **删除缓存**
-   ```
-   DELETE /api/cache/{key}
-   ```
-
-### 配置说明
-
-#### application.yml
+### 3. 配置应用
+修改 `src/main/resources/application.yml`：
 ```yaml
 spring:
   redis:
     host: localhost
     port: 6379
-    password: 
-    database: 0
-
-cache:
-  default-timeout: 300          # 默认缓存过期时间（秒）
-  hot-refresh-interval: 1800    # 热点数据刷新间隔（秒）
-  preheat-enabled: true         # 是否启用缓存预热
+    # 其他配置...
 ```
 
-#### pom.xml 依赖
-```xml
-<!-- Spring Boot Redis Starter -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-redis</artifactId>
-</dependency>
-
-<!-- Redis 客户端 Lettuce -->
-<dependency>
-    <groupId>io.lettuce</groupId>
-    <artifactId>lettuce-core</artifactId>
-</dependency>
-
-<!-- 分布式锁 Redisson -->
-<dependency>
-    <groupId>org.redisson</groupId>
-    <artifactId>redisson-spring-boot-starter</artifactId>
-    <version>3.23.5</version>
-</dependency>
-```
-
-### 缓存问题解决方案对比
-
-| 问题类型 | 解决方案 | 实现方法 | 适用场景 |
-|---------|---------|---------|---------|
-| 缓存击穿 | 互斥锁 | `getWithMutex()` | 热点数据，并发访问高 |
-| 缓存雪崩 | 随机过期时间 | `getWithRandomExpire()` | 批量缓存，同时失效风险 |
-| 热点数据 | 后台刷新 | `getWithBackgroundRefresh()` | 配置数据，访问频繁 |
-| 性能优化 | 多级缓存 | `getWithMultiLevel()` | 超高并发，低延迟要求 |
-
-### 最佳实践
-
-1. **选择合适的方案**
-   - 热点数据：使用互斥锁 + 后台刷新
-   - 批量数据：使用随机过期时间
-   - 配置数据：使用多级缓存
-
-2. **监控与调优**
-   - 监控缓存命中率
-   - 调整过期时间策略
-   - 定期清理无效缓存
-
-3. **容错处理**
-   - Redis 连接失败降级
-   - 锁获取超时处理
-   - 异步刷新异常捕获
-
-### 运行要求
-
-1. 安装 Redis 服务器（默认 localhost:6379）
-2. Java 17 或更高版本
-3. Maven 3.6+
-
-### 启动项目
-
+### 4. 运行应用
 ```bash
-# 启动 Redis
-redis-server
-
-# 编译项目
-mvn clean package
-
-# 运行项目
-java -jar target/spring-gateway-1.0.0-SNAPSHOT.jar
+mvn spring-boot:run
 ```
 
-### 测试缓存功能
+## API 文档
 
-访问以下端点测试缓存功能：
+### 认证接口
 
-```bash
-# 测试互斥锁方案
-curl http://localhost:8080/api/cache/mutex/123
+#### 1. 用户登录
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-# 测试随机过期时间方案
-curl http://localhost:8080/api/cache/random/456
-
-# 测试缓存预热
-curl -X POST http://localhost:8080/api/cache/preheat
+{
+  "username": "admin",
+  "password": "admin123"
+}
 ```
 
-## 项目结构
+#### 2. 用户注册
+```http
+POST /api/auth/register
+Content-Type: application/json
 
+{
+  "username": "newuser",
+  "password": "password123",
+  "confirmPassword": "password123"
+}
 ```
-src/main/java/com/example/
-├── utils/
-│   ├── CacheUtils.java          # 缓存工具类
-│   ├── RedisConfig.java         # Redis 配置
-│   └── CacheExampleController.java # 使用示例
-├── controller/
-├── service/
-├── model/
-└── Application.java
+
+### 受保护的接口（需要认证）
+
+所有以下接口都需要在请求头中添加：
 ```
+Authorization: Bearer <your-jwt-token>
+```
+
+#### 1. 计算器接口
+```http
+GET /api/calculator/subtract?a=10&b=5
+GET /api/calculator/multiply?a=10&b=5
+GET /api/calculator/divide?a=10&b=5
+GET /api/calculator/power?base=2&exponent=3
+GET /api/calculator/sqrt?number=16
+```
+
+#### 2. 系统信息接口
+```http
+GET /api/system/info
+GET /api/system/health
+GET /api/system/env
+GET /api/system/properties
+```
+
+#### 3. Neofetch 接口
+```http
+GET /api/neofetch/info
+GET /api/neofetch/json
+```
+
+### 公开接口（无需认证）
+
+#### 1. Hello 接口
+```http
+GET /api/hello
+GET /api/hello/name?name=World
+```
+
+## 安全配置
+
+### 1. 默认用户
+- 用户名：`admin`
+- 密码：`admin123`
+
+### 2. JWT 配置
+- 密钥：`mySuperSecretKeyThatIsAtLeast32BytesLong123456`
+- 有效期：24小时
+
+### 3. CORS 配置
+- 允许的源：`http://localhost:3000`, `http://localhost:8080`
+- 允许的方法：GET, POST, PUT, DELETE, OPTIONS
+- 允许的头部：所有
+
+## 开发指南
+
+### 1. 添加新的受保护接口
+```java
+@RestController
+@RequestMapping("/api/your-api")
+public class YourController {
+    
+    @GetMapping("/endpoint")
+    public ResponseEntity<?> yourEndpoint() {
+        // 需要认证的接口
+        return ResponseEntity.ok("Your response");
+    }
+}
+```
+
+### 2. 添加参数验证
+```java
+@GetMapping("/validate")
+public ResponseEntity<?> validateEndpoint(
+        @RequestParam @NotNull(message = "参数不能为空") String param,
+        @RequestParam @Min(1) @Max(100) Integer number) {
+    // 参数会自动验证
+    return ResponseEntity.ok("Validated");
+}
+```
+
+### 3. 异常处理
+系统已经配置了全局异常处理器，会自动处理：
+- 参数验证异常
+- 认证异常
+- 权限异常
+- 业务异常
+
+## 部署说明
+
+### 1. 生产环境配置
+- 修改 JWT 密钥
+- 配置 Redis 密码
+- 启用 HTTPS
+- 配置防火墙规则
+
+### 2. 监控建议
+- 启用 Spring Boot Actuator
+- 配置日志收集
+- 设置告警规则
 
 ## 许可证
 
 MIT License
+
+## 贡献指南
+
+1. Fork 项目
+2. 创建功能分支
+3. 提交更改
+4. 创建 Pull Request
+
+## 联系方式
+
+如有问题，请创建 Issue 或联系项目维护者。

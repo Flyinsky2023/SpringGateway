@@ -19,6 +19,12 @@ spring:
         max-wait: -1ms
       shutdown-timeout: 100ms
 
+  # 安全配置
+  security:
+    jwt:
+      secret: mySuperSecretKeyThatIsAtLeast32BytesLong123456
+      expiration: 86400000  # 24小时
+
 # 缓存配置
 cache:
   # 默认缓存过期时间（秒）
@@ -28,10 +34,20 @@ cache:
   # 是否启用缓存预热
   preheat-enabled: true
 
+# 安全配置
+security:
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:8080
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
 # 日志配置
 logging:
   level:
     root: INFO
     com.example: DEBUG
+    org.springframework.security: INFO
     org.springframework.data.redis: INFO
     org.redisson: INFO

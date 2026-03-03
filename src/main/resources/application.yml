@@ -22,8 +22,17 @@ spring:
   # 安全配置
   security:
     jwt:
-      secret: mySuperSecretKeyThatIsAtLeast32BytesLong123456
+      # 使用环境变量 JWT_SECRET 替代硬编码密钥
+      # 示例：export JWT_SECRET=your-secret-key-here
+      secret: ${JWT_SECRET:defaultDevelopmentKeyChangeInProduction}
       expiration: 86400000  # 24小时
+    cors:
+      allowed-origins: http://localhost:3000,http://localhost:8080
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      # 明确指定允许的请求头，避免使用通配符
+      allowed-headers: Authorization,Content-Type,X-Requested-With,Accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers
+      allow-credentials: true
+      max-age: 3600
 
 # 缓存配置
 cache:
@@ -33,15 +42,6 @@ cache:
   hot-refresh-interval: 1800
   # 是否启用缓存预热
   preheat-enabled: true
-
-# 安全配置
-security:
-  cors:
-    allowed-origins: http://localhost:3000,http://localhost:8080
-    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
-    allowed-headers: "*"
-    allow-credentials: true
-    max-age: 3600
 
 # 日志配置
 logging:

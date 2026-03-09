@@ -70,6 +70,7 @@ public class CacheExampleController {
     public Map<String, Object> getWithMultiLevel(@PathVariable String id) {
         String cacheKey = "order:" + id;
         
+        // 使用显式类型转换解决泛型类型推断问题
         return cacheUtils.getWithMultiLevel(cacheKey, localCache, () -> {
             // 模拟从数据库查询订单数据
             System.out.println("查询数据库获取订单数据: " + id);

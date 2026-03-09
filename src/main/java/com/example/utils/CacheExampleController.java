@@ -70,8 +70,11 @@ public class CacheExampleController {
     public Map<String, Object> getWithMultiLevel(@PathVariable String id) {
         String cacheKey = "order:" + id;
         
+        // 创建特定类型的本地缓存用于多级缓存
+        Map<String, Map<String, Object>> typedLocalCache = new ConcurrentHashMap<>();
+        
         // 使用显式类型转换解决泛型类型推断问题
-        Map<String, Object> result = cacheUtils.getWithMultiLevel(cacheKey, localCache, new java.util.function.Supplier<Map<String, Object>>() {
+        Map<String, Object> result = cacheUtils.getWithMultiLevel(cacheKey, typedLocalCache, new java.util.function.Supplier<Map<String, Object>>() {
             @Override
             public Map<String, Object> get() {
                 // 模拟从数据库查询订单数据

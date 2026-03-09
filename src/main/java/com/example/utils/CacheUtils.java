@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -154,7 +155,7 @@ public class CacheUtils {
      * @return 缓存值
      */
     public <T> T getWithMultiLevel(String key, 
-                                   java.util.Map<String, T> localCache, 
+                                   Map<String, T> localCache, 
                                    Supplier<T> supplier, 
                                    long timeout) {
         // 1. 检查本地缓存

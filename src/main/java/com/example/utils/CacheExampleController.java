@@ -83,7 +83,7 @@ public class CacheExampleController {
                 orderData.put("timestamp", System.currentTimeMillis());
                 return orderData;
             }
-        }, 900); // 缓存15分钟
+        }, 900L); // 缓存15分钟，使用long类型
         
         return result != null ? result : new HashMap<>();
     }

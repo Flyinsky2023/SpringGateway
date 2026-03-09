@@ -67,7 +67,7 @@ public class CacheExampleController {
      * 使用多级缓存方案
      */
     @GetMapping("/multi-level/{id}")
-    public String getWithMultiLevel(@PathVariable String id) {
+    public Map<String, Object> getWithMultiLevel(@PathVariable String id) {
         String cacheKey = "order:" + id;
         
         return cacheUtils.getWithMultiLevel(cacheKey, localCache, () -> {

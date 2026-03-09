@@ -71,15 +71,18 @@ public class CacheExampleController {
         String cacheKey = "order:" + id;
         
         // 使用显式类型转换解决泛型类型推断问题
-        Map<String, Object> result = cacheUtils.getWithMultiLevel(cacheKey, localCache, () -> {
-            // 模拟从数据库查询订单数据
-            System.out.println("查询数据库获取订单数据: " + id);
-            Map<String, Object> orderData = new HashMap<>();
-            orderData.put("orderId", id);
-            orderData.put("amount", 100.0);
-            orderData.put("status", "PAID");
-            orderData.put("timestamp", System.currentTimeMillis());
-            return orderData;
+        Map<String, Object> result = cacheUtils.getWithMultiLevel(cacheKey, localCache, new java.util.function.Supplier<Map<String, Object>>() {
+            @Override
+            public Map<String, Object> get() {
+                // 模拟从数据库查询订单数据
+                System.out.println("查询数据库获取订单数据: " + id);
+                Map<String, Object> orderData = new HashMap<>();
+                orderData.put("orderId", id);
+                orderData.put("amount", 100.0);
+                orderData.put("status", "PAID");
+                orderData.put("timestamp", System.currentTimeMillis());
+                return orderData;
+            }
         }, 900); // 缓存15分钟
         
         return result != null ? result : new HashMap<>();

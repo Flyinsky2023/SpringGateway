@@ -71,7 +71,7 @@ public class CacheExampleController {
         String cacheKey = "order:" + id;
         
         // 使用显式类型转换解决泛型类型推断问题
-        return cacheUtils.getWithMultiLevel(cacheKey, localCache, () -> {
+        Map<String, Object> result = cacheUtils.getWithMultiLevel(cacheKey, localCache, () -> {
             // 模拟从数据库查询订单数据
             System.out.println("查询数据库获取订单数据: " + id);
             Map<String, Object> orderData = new HashMap<>();
@@ -81,6 +81,8 @@ public class CacheExampleController {
             orderData.put("timestamp", System.currentTimeMillis());
             return orderData;
         }, 900); // 缓存15分钟
+        
+        return result != null ? result : new HashMap<>();
     }
     
     /**

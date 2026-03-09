@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Neofetch 风格系统信息控制器
@@ -37,8 +38,8 @@ public class NeofetchController {
         long maxMemory = runtime.maxMemory();
         double memoryUsagePercent = ((double) usedMemory / totalMemory) * 100;
         
-        // 格式化内存大小
-        String formatMemory = (size) -> {
+        // 格式化内存大小 - 使用 Function<Long, String> 接口
+        Function<Long, String> formatMemory = (size) -> {
             if (size < 1024) return size + " B";
             if (size < 1024 * 1024) return String.format("%.1f KB", size / 1024.0);
             if (size < 1024 * 1024 * 1024) return String.format("%.1f MB", size / (1024.0 * 1024.0));
@@ -51,11 +52,11 @@ public class NeofetchController {
         // ASCII 艺术 Logo (Spring Boot 风格)
         neofetch.append("\n");
         neofetch.append("     _____             _             ____              _   \n");
-        neofetch.append("    / ____|           | |           |  _ \\            | |  \n");
+        neofetch.append("    / ____|           | |           |  _ \\\\            | |  \n");
         neofetch.append("   | (___  _ __   __ _| | _____ _ __| |_) | ___   ___ | |_ \n");
-        neofetch.append("    \\___ \\| '_ \\ / _` | |/ / _ \\ '__|  _ < / _ \\ / _ \\| __|\n");
+        neofetch.append("    \\\\___ \\\\| '_ \\\\ / _` | |/ / _ \\\\ '__|  _ < / _ \\\\ / _ \\\\| __|\n");
         neofetch.append("    ____) | |_) | (_| |   <  __/ |  | |_) | (_) | (_) | |_ \n");
-        neofetch.append("   |_____/| .__/ \\__,_|_|\\_\\___|_|  |____/ \\___/ \\___/ \\__|\n");
+        neofetch.append("   |_____/| .__/ \\\\__,_|_|\\\\_\\\\___|_|  |____/ \\\\___/ \\\\___/ \\\\__|\n");
         neofetch.append("          | |                                             \n");
         neofetch.append("          |_|                                             \n");
         neofetch.append("\n");
